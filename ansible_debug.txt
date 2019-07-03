@@ -1,0 +1,41 @@
+(in stub app.py directory)
+export FLASK_APP='app.py'
+flask run
+ ** If you are running docker compose, this seems to update as well (http://127.0.0.1:5099)
+ ** so no need for flask run. Otherwise you can access it http://127.0.0.1:5000
+ http://127.0.0.1:5099/api/v2/inventory_sources/1/update/
+
+------
+
+# from tower_cli import get_resource
+
+towerInventorySource = tower_cli.get_resource('inventory_source')
+
+# This one seems to work.
+session = tower_cli.conf.settings.runtime_values(host='http://127.0.0.1:5000', verify_ssl=False, username='admin', password='admin')
+with session: 
+  res = towerInventorySource.update(inventory_source=int('37'), monitor=False)
+# >>> res
+# {'status': 'ok', 'id': 342}
+
+# Monitor
+session = tower_cli.conf.settings.runtime_values(host='http://127.0.0.1:5000', verify_ssl=False, username='admin', password='admin')
+with session: 
+  res = towerInventorySource.update(inventory_source=int('37'), monitor=True)
+# will try to GET /api/v2/inventory_sources/37/
+# we don't have this implemented
+
+# Intentional fail
+session = tower_cli.conf.settings.runtime_values(host='http://127.0.0.1:5099', verify_ssl=False, username='admin', password='admin')
+with session: 
+    res = towerInventorySource.update(inventory_source=int('406'), monitor=False)
+    
+!!! For some weird reason, the Flask sometimes hangs unless you open a browser
+and manually refresh http://127.0.0.1:5000/
+
+----
+from their source
+
+tower_cli.api.settings.verify_ssl = False
+resp1 = tower_cli.api.client.get('http://127.0.0.1:5000/api/v2/inventory_sources/37/update/')
+

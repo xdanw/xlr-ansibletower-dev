@@ -57,7 +57,7 @@
     <type type="ansible.SynchronizeInventory" extends="ansible.TowerTask">
         <property name="scriptLocation" hidden="true" default="ansible_tower/run_inventory_update.py"/>
         <!-- input params -->
-        <property name="inventorySource" category="input" kind="string" required="false"
+        <property name="inventorySource" category="input" kind="string" required="true"
                   description="The name or integer key of the inventory source to update"/>
         <property name="waitTillComplete" kind="boolean" category="input" required="false" default="true"
                   description="Wait for successful completion or fail."/>

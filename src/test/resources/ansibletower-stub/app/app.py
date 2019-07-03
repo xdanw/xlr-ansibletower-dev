@@ -18,9 +18,11 @@ import os, io, json
 app = Flask(__name__)
 
 def getFile( fileName, status="200" ):
-     filePath = "/at-stub/responses/%s" % fileName
+     filePath = "./responses/%s" % fileName
+     print filePath
      if not os.path.isfile(filePath):
-        raise AuthError({"code": "response_file_not_found", "description": "Unable to load response file"}, 500)
+        # raise AuthError({"code": "response_file_not_found", "description": "Unable to load response file"}, 500)
+        resp = make_response( 'Error: Unable to find response file.', '404' )
 
      f = io.open(filePath, "r", encoding="utf-8")
 
@@ -46,9 +48,15 @@ def requires_auth(f):
 def index():
     return "Hello, World!"
 
+# The ansible-cli uses a trailing /, so this code won't run
 @app.route('/api/v2/inventory_updates/<id>', methods=['GET'])
 @requires_auth
 def getInventoryUpdate(id):
+    return getFile("inventory-sync-%s.json" % id)
+
+@app.route('/api/v2/inventory_updates/<id>/', methods=['GET'])
+@requires_auth
+def getInventoryUpdate2(id):
     return getFile("inventory-sync-%s.json" % id)
 
 @app.route('/api/v2/inventory_updates/<id>/stdout', methods=['GET'])
@@ -56,11 +64,27 @@ def getInventoryUpdate(id):
 def getInventoryUpdateStdout(id):
     return getFile("inventory-sync-stdout-%s.json" % id)
 
+# Can it be updated? ansible-cli will check. 202 is yes, 405 if no.
+@app.route('/api/v2/inventory_sources/<inventory_source_id>/update/', methods=['GET'])
+# @requires_auth
+def replyIfSourceCanBeUpdated(inventory_source_id):
+    if (inventory_source_id == '405') : # 405 triggers a fail
+        app.logger.info("Responding update ability NO (HTTP 405) for id: %s" % inventory_source_id)
+        resp = make_response('{ "can_update": false }', 405)
+    elif (inventory_source_id == '406') : # 406 returns 202, but says no to updates
+            app.logger.info("Responding update ability NO (HTTP 405) for id: %s" % inventory_source_id)
+            resp = make_response('{ "can_update": false }', 202)
+    else: 
+        app.logger.info("Responding update ability YES (HTTP 202) for id: %s" % inventory_source_id)
+        resp = make_response('{\r\n "can_update": true \r\n}', 202)
+        
+    app.logger.info("Responding update ability for id: %s" % inventory_source_id)
+    return resp
+
 @app.route('/api/v2/inventory_sources/<inventory_source_id>/update/', methods=['POST'])
-@requires_auth
+# @requires_auth
 def startSync(inventory_source_id):
     app.logger.info("startSync for inventory source %s" % inventory_source_id)
-
     resp = make_response((getFile("inventory-sync-update-%s.json" % inventory_source_id), 202))
     return resp
 

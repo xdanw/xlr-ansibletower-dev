@@ -18,19 +18,25 @@ def process(task_vars):
         
         try:
             print("```")  # started markdown code block
-            result = towerInventorySource.update(inventory_source=['inventorySource'], monitor=['waitTillComplete'])
+            res = towerInventorySource.update(inventory_source=int(task_vars['inventorySource']), monitor=task_vars['waitTillComplete'])
+            
+            # Debug
+            print '...\r\n'
+            print res
+            print '---\r\n'
+            print res['status']
+            print ' ==== \r\n'
+            
+            globals()['jobStatus'] = res['status']
+            
+            if task_vars['stopOnFailure'] and not res['status'] == 'successful':
+                raise Exception("Failed with status %s" % res['status'])
             
         except:
-            print "Exception occured durinng ansible.SynchronizeInventory"
+            print "Exception occured during ansible.SynchronizeInventory"
         finally: 
             print("```")
             print("\n")  # end markdown code block
-            print "Ansible Tower inventory update request sent."
-            
-        globals()['jobStatus'] = res['status']
-
-        if task_vars['stopOnFailure'] and not res['status'] == 'successful':
-            raise Exception("Failed with status %s" % res['status'])
 
 if __name__ == '__main__' or __name__ == '__builtin__':
     process(locals())

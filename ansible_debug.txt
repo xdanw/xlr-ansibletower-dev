@@ -34,6 +34,18 @@ with session:
 and manually refresh http://127.0.0.1:5000/
 
 ----
+
+exception handling validation: 
+
+from tower_cli import exceptions
+try: 
+   # raise exceptions.JobFailure('Job Failure Message.')
+except exceptions.JobFailure as JobException:
+   print str(JobException)
+except: 
+   print "Other problem."
+
+----
 from their source
 
 tower_cli.api.settings.verify_ssl = False

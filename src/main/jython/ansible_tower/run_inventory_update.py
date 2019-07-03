@@ -9,6 +9,7 @@
 #
 
 from tower_cli import get_resource
+from tower_cli import exceptions
 from ansible_tower.connect_util import session
 
 def process(task_vars):
@@ -31,9 +32,16 @@ def process(task_vars):
             
             if task_vars['stopOnFailure'] and not res['status'] == 'successful':
                 raise Exception("Failed with status %s" % res['status'])
-            
+        
+        except exceptions.JobFailure as JobException:
+            print str(JobException);
+            if task_vars['stopOnFailure']: 
+                print "Stopping on failure."
+                raise TaskStopOnJobFailure;
+            else: 
+                print "Job failed, obeying option to continue with release."
         except:
-            print "Exception occured during ansible.SynchronizeInventory"
+            print "Other exception occured during ansible.SynchronizeInventory"
         finally: 
             print("```")
             print("\n")  # end markdown code block
